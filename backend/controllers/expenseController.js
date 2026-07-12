@@ -1,5 +1,7 @@
 import { prisma } from '../config/db.js';
 
+// Financial Analyst (Harsh-Vipul-Patel): Handles expense tracking and normalization
+
 // Normalization and mapping helper to match Mongoose output format
 const toDisplayExpense = (e) => {
     if (!e) return null;

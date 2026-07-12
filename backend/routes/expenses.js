@@ -8,7 +8,7 @@ router.use(protect);
 
 router.route('/')
     .get(authorize('Manager', 'Financial Analyst'), getExpenseLogs)
-    .post(authorize('Manager', 'Dispatcher', 'Financial Analyst'), createExpenseLog);
+    .post(authorize('Manager', 'Driver', 'Financial Analyst'), createExpenseLog);
 
 router.route('/:id')
     .put(authorize('Manager', 'Financial Analyst'), updateExpenseLog)

@@ -52,7 +52,7 @@ const Login = () => {
                         Welcome Back
                     </h2>
                     <p className="mt-3 text-base text-slate-600 font-medium">
-                        Log in to your FleetFlow Command Center
+                        Log in to your TransitOps Command Center
                     </p>
                 </div>
 
@@ -70,7 +70,7 @@ const Login = () => {
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 className="w-full px-4 py-3 bg-white/50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 focus:bg-white transition-all shadow-sm placeholder-slate-400 text-slate-900"
-                                placeholder="name@fleetflow.com"
+                                placeholder="name@transitops.com"
                             />
                         </motion.div>
 

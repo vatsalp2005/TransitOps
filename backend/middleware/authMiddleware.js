@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'fleetflow_super_secret';
+const JWT_SECRET = process.env.JWT_SECRET || 'transitops_super_secret';
 
 export const protect = (req, res, next) => {
     let token = req.headers.authorization;

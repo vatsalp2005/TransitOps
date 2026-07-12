@@ -1,14 +1,14 @@
-# 🚛 FleetFlow - Intelligent Fleet Management System
+# 🚛 TransitOps - Smart Transport Operations Platform
 
-FleetFlow is a comprehensive, modern, and highly interactive fleet management web application built to streamline operations for Fleet Managers, Dispatchers, Safety Officers, and Financial Analysts. It provides robust Role-Based Access Control (RBAC), intelligent safety metrics, and a beautiful, fully animated user interface.
+TransitOps is a comprehensive, modern, and highly interactive transport operations platform built to digitize vehicle, driver, dispatch, maintenance, and expense management while enforcing business rules and providing operational insights. It serves Fleet Managers, Drivers, Safety Officers, and Financial Analysts with robust Role-Based Access Control (RBAC), intelligent safety metrics, and a beautiful, fully animated user interface.
 
 ## ✨ Key Features
 
 *   **🛡️ Role-Based Access Control (RBAC):** Tailored views and permissions for different roles:
-    *   **Manager:** Full oversight, vehicle management, and system administration.
-    *   **Dispatcher:** Trip dispatching, maintenance logging, and routing.
-    *   **Safety Officer:** Dedicated `Safety & Compliance Center` dashboard, driver safety monitoring, and license expiration tracking.
-    *   **Financial Analyst:** Expense tracking, cost analysis, and PDF report generation.
+    *   **Fleet Manager (Manager):** Full oversight of fleet assets, maintenance, vehicle lifecycle, and operational efficiency.
+    *   **Driver:** Creates trips, assigns vehicles and drivers, monitors active deliveries, and manages maintenance logs.
+    *   **Safety Officer:** Dedicated `Safety & Compliance Center` dashboard, ensures driver compliance, tracks license validity, and monitors safety scores.
+    *   **Financial Analyst:** Reviews operational expenses, fuel consumption, maintenance costs, and profitability. Supports PDF report generation.
 *   **🎨 Premium UI / UX:** Built with a stunning "Glassmorphism" aesthetic, featuring frosted-glass panels, smooth gradients, and micro-interactions powered by Framer Motion.
 *   **📊 Safety & Compliance Center:** A specialized dashboard that maps out the entire fleet's safety standing, instantly flagging high-risk drivers (Score < 70) and licenses expiring within 30 days.
 *   **🌟 Interactive Safety Ratings:** Safety Officers can interactively adjust a driver's safety score post-trip using a custom-built, animated slider modal.
@@ -103,4 +103,35 @@ FleetFlow is a comprehensive, modern, and highly interactive fleet management we
 
 Upon launching the application, you can log in / sign up using varying roles to experience the different dashboards. For example, registering as a **Safety Officer** instantly overrides the standard fleet dashboard with the dedicated Safety Center.
 
-*Designed with ❤️ for beautiful fleet management.*
+---
+
+## 👥 Team Collaboration (Git Workflow)
+
+To ensure clear, individual contribution metrics for evaluation, please follow this team collaboration model:
+
+### 1. Local Configuration
+Before committing, each teammate must configure their GitHub identity on their local machine:
+```bash
+git config --global user.name "Your Full Name"
+git config --global user.email "your_email@example.com"
+```
+
+### 2. Feature-Branch Model
+*   Never push or commit directly to the `main` branch.
+*   Always branch out from up-to-date `main` to work on your module:
+    ```bash
+    git checkout main
+    git pull origin main
+    git checkout -b feature/your-module-name
+    ```
+*   Commit and push your feature branch:
+    ```bash
+    git add .
+    git commit -m "feat: implement vehicles registry CRUD"
+    git push origin feature/your-module-name
+    ```
+*   Open a **Pull Request (PR)** on GitHub, request a review from a teammate, and merge it into `main` after verification.
+
+---
+
+*Designed with ❤️ for smart transport operations.*

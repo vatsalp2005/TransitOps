@@ -7,13 +7,13 @@ const router = express.Router();
 router.use(protect);
 
 router.route('/')
-    .get(authorize('Manager', 'Dispatcher', 'Financial Analyst'), getMaintenanceLogs)
-    .post(authorize('Manager', 'Dispatcher'), createMaintenanceLog);
+    .get(authorize('Manager', 'Driver', 'Financial Analyst'), getMaintenanceLogs)
+    .post(authorize('Manager', 'Driver'), createMaintenanceLog);
 
 router.route('/:id')
-    .put(authorize('Manager', 'Dispatcher'), updateMaintenanceLog)
-    .delete(authorize('Manager', 'Dispatcher'), deleteMaintenanceLog);
+    .put(authorize('Manager', 'Driver'), updateMaintenanceLog)
+    .delete(authorize('Manager', 'Driver'), deleteMaintenanceLog);
 
-router.post('/:id/complete', authorize('Manager', 'Dispatcher'), completeMaintenanceLog);
+router.post('/:id/complete', authorize('Manager', 'Driver'), completeMaintenanceLog);
 
 export default router;

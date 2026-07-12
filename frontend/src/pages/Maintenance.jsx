@@ -103,7 +103,7 @@ const Maintenance = () => {
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
             <div className="flex justify-between items-center bg-white/40 p-4 rounded-xl backdrop-blur-sm border border-white/50 shadow-sm">
                 <h1 className="text-3xl font-bold text-slate-900 font-heading tracking-tight drop-shadow-sm">Maintenance Logs</h1>
-                {['Manager', 'Dispatcher'].includes(user?.role) && (
+                {['Manager', 'Driver'].includes(user?.role) && (
                     <button onClick={() => { closeModal(); setIsAddOpen(true); }} className="premium-btn px-4 py-2 rounded-lg flex items-center shadow-sm">
                         <Plus className="w-4 h-4 mr-2" /> Log Service
                     </button>
@@ -119,7 +119,7 @@ const Maintenance = () => {
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vehicle</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cost (₹)</th>
-                                {['Manager', 'Dispatcher'].includes(user?.role) && <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>}
+                                {['Manager', 'Driver'].includes(user?.role) && <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>}
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
@@ -136,7 +136,7 @@ const Maintenance = () => {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{log.description}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">₹{log.cost.toFixed(2)}</td>
-                                    {['Manager', 'Dispatcher'].includes(user?.role) && (
+                                    {['Manager', 'Driver'].includes(user?.role) && (
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             <button onClick={() => setCompleteConfirmId(log._id)} className="text-emerald-600 hover:text-emerald-900 mx-2 inline-flex items-center" title="Complete Maintenance">
                                                 <CheckCircle className="w-4 h-4 mr-1" /> Complete
@@ -151,7 +151,7 @@ const Maintenance = () => {
                             ))}
                             {logs.length === 0 && (
                                 <tr>
-                                    <td colSpan={['Manager', 'Dispatcher'].includes(user?.role) ? "5" : "4"} className="px-6 py-8 text-center text-gray-500">No maintenance logs found.</td>
+                                    <td colSpan={['Manager', 'Driver'].includes(user?.role) ? "5" : "4"} className="px-6 py-8 text-center text-gray-500">No maintenance logs found.</td>
                                 </tr>
                             )}
                         </tbody>

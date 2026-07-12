@@ -11,7 +11,7 @@ router.route('/')
     .post(authorize('Manager'), createVehicle);
 
 router.route('/:id')
-    .put(authorize('Manager', 'Dispatcher'), updateVehicle)
+    .put(authorize('Manager', 'Driver'), updateVehicle)
     .delete(authorize('Manager'), deleteVehicle);
 
 export default router;

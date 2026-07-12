@@ -8,13 +8,13 @@ router.use(protect);
 
 router.route('/')
     .get(getTrips)
-    .post(authorize('Manager', 'Dispatcher'), createTrip);
+    .post(authorize('Manager', 'Driver'), createTrip);
 
 router.route('/:id/complete')
-    .post(authorize('Manager', 'Dispatcher'), completeTrip);
+    .post(authorize('Manager', 'Driver'), completeTrip);
 
 router.route('/:id')
-    .put(authorize('Manager', 'Dispatcher'), updateTrip)
+    .put(authorize('Manager', 'Driver'), updateTrip)
     .delete(authorize('Manager'), deleteTrip);
 
 export default router;

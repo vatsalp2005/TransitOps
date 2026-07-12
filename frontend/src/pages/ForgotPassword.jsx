@@ -72,7 +72,7 @@ const ForgotPassword = () => {
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
                                         className="appearance-none block w-full pl-10 px-3 py-2.5 border border-gray-300 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-shadow"
-                                        placeholder="you@fleetflow.com"
+                                        placeholder="you@transitops.com"
                                     />
                                 </div>
                             </div>

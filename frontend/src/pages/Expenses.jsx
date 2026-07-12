@@ -113,7 +113,7 @@ const Expenses = () => {
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vehicle</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trip Route</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Liters</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cost ($)</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cost (₹)</th>
                                 {user?.role === 'Financial Analyst' && <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>}
                             </tr>
                         </thead>
@@ -180,7 +180,7 @@ const Expenses = () => {
                                 <input type="number" required className="mt-1 w-full border border-gray-300 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500" value={formData.liters} onChange={e => setFormData({ ...formData, liters: e.target.value })} />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Cost ($)</label>
+                                <label className="block text-sm font-medium text-gray-700">Cost (₹)</label>
                                 <input type="number" required className="mt-1 w-full border border-gray-300 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500" value={formData.cost} onChange={e => setFormData({ ...formData, cost: e.target.value })} />
                             </div>
                             <div>

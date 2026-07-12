@@ -1,11 +1,53 @@
-import Trip from '../models/Trip.js';
-import Vehicle from '../models/Vehicle.js';
-import Driver from '../models/Driver.js';
+import { prisma } from '../config/db.js';
+
+// Normalization and mapping helper to match Mongoose output format
+const toDisplayTrip = (t) => {
+    if (!t) return null;
+    return {
+        _id: t.id,
+        id: t.id,
+        cargoWeight: t.cargoWeight,
+        origin: t.origin,
+        destination: t.destination,
+        plannedDistance: t.plannedDistance,
+        revenue: t.revenue,
+        status: t.status,
+        createdAt: t.createdAt,
+        updatedAt: t.updatedAt,
+        vehicleId: t.vehicle ? {
+            _id: t.vehicle.id,
+            id: t.vehicle.id,
+            name: t.vehicle.name,
+            model: t.vehicle.model,
+            category: t.vehicle.category.replace('_', ' '),
+            licensePlate: t.vehicle.licensePlate,
+            maxCapacity: t.vehicle.maxCapacity,
+            odometer: t.vehicle.odometer,
+            status: t.vehicle.status.replace('_', ' ')
+        } : null,
+        driverId: t.driver ? {
+            _id: t.driver.id,
+            id: t.driver.id,
+            name: t.driver.name,
+            licenseNumber: t.driver.licenseNumber,
+            licenseCategory: t.driver.licenseCategory.replace('_', ' '),
+            licenseExpiryDate: t.driver.licenseExpiryDate,
+            contactNumber: t.driver.contactNumber,
+            safetyScore: t.driver.safetyScore,
+            totalTrips: t.driver.totalTrips,
+            completedTrips: t.driver.completedTrips,
+            status: t.driver.status.replace('_', ' ')
+        } : null
+    };
+};
 
 export const getTrips = async (req, res) => {
     try {
-        const trips = await Trip.find().populate('vehicleId').populate('driverId');
-        res.json(trips);
+        const trips = await prisma.trip.findMany({
+            include: { vehicle: true, driver: true },
+            orderBy: { createdAt: 'desc' }
+        });
+        res.json(trips.map(toDisplayTrip));
     } catch (error) {
         res.status(500).json({ message: 'Server Error', error: error.message });
     }
@@ -13,35 +55,59 @@ export const getTrips = async (req, res) => {
 
 export const createTrip = async (req, res) => {
     try {
-        const { vehicleId, driverId, cargoWeight, origin, destination, revenue } = req.body;
+        const { vehicleId, driverId, cargoWeight, origin, destination, plannedDistance, revenue } = req.body;
 
         // Validation
-        const vehicle = await Vehicle.findById(vehicleId);
+        const vehicle = await prisma.vehicle.findUnique({ where: { id: vehicleId } });
         if (!vehicle) return res.status(404).json({ message: 'Vehicle not found' });
         if (vehicle.status !== 'Available') return res.status(400).json({ message: 'Vehicle is not available' });
-        if (cargoWeight > vehicle.maxCapacity) return res.status(400).json({ message: 'Cargo weight exceeds vehicle capacity' });
+        if (Number(cargoWeight) > vehicle.maxCapacity) return res.status(400).json({ message: 'Cargo weight exceeds vehicle capacity' });
 
-        const driver = await Driver.findById(driverId);
+        const driver = await prisma.driver.findUnique({ where: { id: driverId } });
         if (!driver) return res.status(404).json({ message: 'Driver not found' });
-        if (driver.status !== 'On Duty') return res.status(400).json({ message: 'Driver is not on duty' });
+        if (driver.status !== 'Available') return res.status(400).json({ message: 'Driver is not available' });
         if (new Date(driver.licenseExpiryDate) < new Date()) return res.status(400).json({ message: 'Driver license expired' });
 
         // Category compliance check
         if (vehicle.category !== driver.licenseCategory) {
-            return res.status(400).json({ message: `Driver license category (${driver.licenseCategory}) does not match vehicle category (${vehicle.category})` });
+            return res.status(400).json({
+                message: `Driver license category (${driver.licenseCategory.replace('_', ' ')}) does not match vehicle category (${vehicle.category.replace('_', ' ')})`
+            });
         }
 
-        const trip = new Trip({ vehicleId, driverId, cargoWeight, origin, destination, revenue: revenue || 0, status: 'Dispatched' });
-        await trip.save();
+        // Create transaction to save Trip and update statuses
+        const trip = await prisma.$transaction(async (tx) => {
+            const newTrip = await tx.trip.create({
+                data: {
+                    vehicleId,
+                    driverId,
+                    cargoWeight: Number(cargoWeight),
+                    origin,
+                    destination,
+                    plannedDistance: plannedDistance ? Number(plannedDistance) : 0,
+                    revenue: revenue ? Number(revenue) : 0,
+                    status: 'Dispatched'
+                },
+                include: { vehicle: true, driver: true }
+            });
 
-        // Update statuses
-        vehicle.status = 'On Trip';
-        await vehicle.save();
-        driver.status = 'On Trip';
-        driver.totalTrips = (driver.totalTrips || 0) + 1;
-        await driver.save();
+            await tx.vehicle.update({
+                where: { id: vehicleId },
+                data: { status: 'On_Trip' }
+            });
 
-        res.status(201).json(trip);
+            await tx.driver.update({
+                where: { id: driverId },
+                data: {
+                    status: 'On_Trip',
+                    totalTrips: driver.totalTrips + 1
+                }
+            });
+
+            return newTrip;
+        });
+
+        res.status(201).json(toDisplayTrip(trip));
     } catch (error) {
         res.status(400).json({ message: 'Bad Request', error: error.message });
     }
@@ -52,34 +118,46 @@ export const completeTrip = async (req, res) => {
         const { id } = req.params;
         const { finalOdometer } = req.body;
 
-        const trip = await Trip.findById(id);
+        const trip = await prisma.trip.findUnique({
+            where: { id },
+            include: { vehicle: true, driver: true }
+        });
         if (!trip) return res.status(404).json({ message: 'Trip not found' });
         if (trip.status !== 'Dispatched') return res.status(400).json({ message: 'Trip is not currently dispatched' });
 
-        trip.status = 'Completed';
-        await trip.save();
-
-        // Update statuses
-        const vehicle = await Vehicle.findById(trip.vehicleId);
-        if (vehicle) {
-            if (finalOdometer) {
-                if (finalOdometer < vehicle.odometer) {
-                    return res.status(400).json({ message: 'Final odometer cannot be less than current odometer' });
-                }
-                vehicle.odometer = finalOdometer;
+        if (finalOdometer) {
+            if (Number(finalOdometer) < trip.vehicle.odometer) {
+                return res.status(400).json({ message: 'Final odometer cannot be less than current odometer' });
             }
-            vehicle.status = 'Available';
-            await vehicle.save();
         }
 
-        const driver = await Driver.findById(trip.driverId);
-        if (driver) {
-            driver.status = 'On Duty';
-            driver.completedTrips = (driver.completedTrips || 0) + 1;
-            await driver.save();
-        }
+        const updatedTrip = await prisma.$transaction(async (tx) => {
+            const completed = await tx.trip.update({
+                where: { id },
+                data: { status: 'Completed' },
+                include: { vehicle: true, driver: true }
+            });
 
-        res.json({ message: 'Trip completed successfully', trip });
+            await tx.vehicle.update({
+                where: { id: trip.vehicleId },
+                data: {
+                    status: 'Available',
+                    odometer: finalOdometer ? Number(finalOdometer) : trip.vehicle.odometer
+                }
+            });
+
+            await tx.driver.update({
+                where: { id: trip.driverId },
+                data: {
+                    status: 'Available',
+                    completedTrips: trip.driver.completedTrips + 1
+                }
+            });
+
+            return completed;
+        });
+
+        res.json({ message: 'Trip completed successfully', trip: toDisplayTrip(updatedTrip) });
     } catch (error) {
         res.status(500).json({ message: 'Server Error', error: error.message });
     }
@@ -88,56 +166,73 @@ export const completeTrip = async (req, res) => {
 export const updateTrip = async (req, res) => {
     try {
         const { id } = req.params;
-        const currentTrip = await Trip.findById(id);
+        const currentTrip = await prisma.trip.findUnique({ where: { id } });
         if (!currentTrip) return res.status(404).json({ message: 'Trip not found' });
 
-        const { vehicleId, driverId, cargoWeight, origin, destination, status, revenue } = req.body;
+        const { vehicleId, driverId, cargoWeight, origin, destination, status, plannedDistance, revenue } = req.body;
 
-        // If vehicle changed, release old, claim new
-        if (vehicleId && vehicleId !== currentTrip.vehicleId.toString()) {
-            const oldVehicle = await Vehicle.findById(currentTrip.vehicleId);
-            if (oldVehicle) {
-                oldVehicle.status = 'Available';
-                await oldVehicle.save();
+        // Perform updates in a transaction
+        const updated = await prisma.$transaction(async (tx) => {
+            // Release old vehicle
+            if (vehicleId && vehicleId !== currentTrip.vehicleId) {
+                await tx.vehicle.update({
+                    where: { id: currentTrip.vehicleId },
+                    data: { status: 'Available' }
+                });
+                await tx.vehicle.update({
+                    where: { id: vehicleId },
+                    data: { status: 'On_Trip' }
+                });
             }
-            const newVehicle = await Vehicle.findById(vehicleId);
-            if (newVehicle) {
-                newVehicle.status = 'On Trip';
-                await newVehicle.save();
-            }
-        }
 
-        // If driver changed, release old, claim new
-        if (driverId && driverId !== currentTrip.driverId.toString()) {
-            const oldDriver = await Driver.findById(currentTrip.driverId);
-            if (oldDriver) {
-                oldDriver.status = 'On Duty';
-                await oldDriver.save();
+            // Release old driver
+            if (driverId && driverId !== currentTrip.driverId) {
+                await tx.driver.update({
+                    where: { id: currentTrip.driverId },
+                    data: { status: 'Available' }
+                });
+                await tx.driver.update({
+                    where: { id: driverId },
+                    data: { status: 'On_Trip' }
+                });
             }
-            const newDriver = await Driver.findById(driverId);
-            if (newDriver) {
-                newDriver.status = 'On Trip';
-                await newDriver.save();
-            }
-        }
 
-        // Handle Cancellation penalty
-        if (status === 'Cancelled' && currentTrip.status !== 'Cancelled') {
-            const driverItem = await Driver.findById(currentTrip.driverId);
-            if (driverItem) {
-                driverItem.status = 'On Duty';
-                driverItem.safetyScore = Math.max(0, (driverItem.safetyScore || 100) - 5); // 5 point penalty
-                await driverItem.save();
+            // Handle cancellation penalty
+            if (status === 'Cancelled' && currentTrip.status !== 'Cancelled') {
+                const driver = await tx.driver.findUnique({ where: { id: currentTrip.driverId } });
+                if (driver) {
+                    await tx.driver.update({
+                        where: { id: currentTrip.driverId },
+                        data: {
+                            status: 'Available',
+                            safetyScore: Math.max(0, driver.safetyScore - 5)
+                        }
+                    });
+                }
+                await tx.vehicle.update({
+                    where: { id: currentTrip.vehicleId },
+                    data: { status: 'Available' }
+                });
             }
-            const vehicleItem = await Vehicle.findById(currentTrip.vehicleId);
-            if (vehicleItem) {
-                vehicleItem.status = 'Available';
-                await vehicleItem.save();
-            }
-        }
 
-        const trip = await Trip.findByIdAndUpdate(id, req.body, { new: true });
-        res.json(trip);
+            const data = {};
+            if (vehicleId) data.vehicleId = vehicleId;
+            if (driverId) data.driverId = driverId;
+            if (cargoWeight) data.cargoWeight = Number(cargoWeight);
+            if (origin) data.origin = origin;
+            if (destination) data.destination = destination;
+            if (status) data.status = status;
+            if (plannedDistance) data.plannedDistance = Number(plannedDistance);
+            if (revenue !== undefined) data.revenue = Number(revenue);
+
+            return await tx.trip.update({
+                where: { id },
+                data,
+                include: { vehicle: true, driver: true }
+            });
+        });
+
+        res.json(toDisplayTrip(updated));
     } catch (error) {
         res.status(400).json({ message: 'Bad Request', error: error.message });
     }
@@ -146,25 +241,23 @@ export const updateTrip = async (req, res) => {
 export const deleteTrip = async (req, res) => {
     try {
         const { id } = req.params;
-        const trip = await Trip.findById(id);
+        const trip = await prisma.trip.findUnique({ where: { id } });
         if (!trip) return res.status(404).json({ message: 'Trip not found' });
 
-        // If trip was Dispatched, release the vehicle and driver
-        if (trip.status === 'Dispatched') {
-            const vehicle = await Vehicle.findById(trip.vehicleId);
-            if (vehicle) {
-                vehicle.status = 'Available';
-                await vehicle.save();
+        await prisma.$transaction(async (tx) => {
+            if (trip.status === 'Dispatched') {
+                await tx.vehicle.update({
+                    where: { id: trip.vehicleId },
+                    data: { status: 'Available' }
+                });
+                await tx.driver.update({
+                    where: { id: trip.driverId },
+                    data: { status: 'Available' }
+                });
             }
+            await tx.trip.delete({ where: { id } });
+        });
 
-            const driver = await Driver.findById(trip.driverId);
-            if (driver) {
-                driver.status = 'On Duty';
-                await driver.save();
-            }
-        }
-
-        await Trip.findByIdAndDelete(id);
         res.json({ message: 'Trip removed' });
     } catch (error) {
         res.status(500).json({ message: 'Server Error', error: error.message });

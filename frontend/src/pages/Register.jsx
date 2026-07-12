@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 const Register = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [role, setRole] = useState('Dispatcher');
+    const [role, setRole] = useState('Driver');
     const [loading, setLoading] = useState(false);
 
     const { register } = useContext(AuthContext);
@@ -45,7 +45,7 @@ const Register = () => {
                         Create Account
                     </h2>
                     <p className="mt-3 text-base text-slate-600 font-medium">
-                        Join the FleetFlow Operations Team
+                        Join the TransitOps Operations Team
                     </p>
                 </div>
 
@@ -61,7 +61,7 @@ const Register = () => {
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 className="w-full px-4 py-3 bg-white/50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 focus:bg-white transition-all shadow-sm placeholder-slate-400 text-slate-900"
-                                placeholder="name@fleetflow.com"
+                                placeholder="name@transitops.com"
                             />
                         </motion.div>
 
@@ -91,7 +91,7 @@ const Register = () => {
                                 className="w-full px-4 py-3 bg-white/50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 focus:bg-white transition-all shadow-sm text-slate-900 appearance-none"
                             >
                                 <option value="Manager">Manager HQ</option>
-                                <option value="Dispatcher">Dispatcher</option>
+                                <option value="Driver">Driver</option>
                                 <option value="Safety Officer">Safety Officer</option>
                                 <option value="Financial Analyst">Financial Analyst</option>
                             </select>

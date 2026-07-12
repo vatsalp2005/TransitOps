@@ -7,11 +7,11 @@ const Sidebar = () => {
     const { user, logout } = useContext(AuthContext);
 
     const links = [
-        { to: '/', icon: Home, label: 'Dashboard', roles: ['Manager', 'Dispatcher', 'Safety Officer', 'Financial Analyst'] },
-        { to: '/vehicles', icon: Truck, label: 'Vehicles', roles: ['Manager', 'Dispatcher'] },
-        { to: '/drivers', icon: Users, label: 'Drivers', roles: ['Manager', 'Dispatcher', 'Safety Officer'] },
-        { to: '/trips', icon: Map, label: 'Trips', roles: ['Manager', 'Dispatcher'] },
-        { to: '/maintenance', icon: Wrench, label: 'Maintenance', roles: ['Manager', 'Dispatcher', 'Financial Analyst'] },
+        { to: '/', icon: Home, label: 'Dashboard', roles: ['Manager', 'Driver', 'Safety Officer', 'Financial Analyst'] },
+        { to: '/vehicles', icon: Truck, label: 'Vehicles', roles: ['Manager', 'Driver'] },
+        { to: '/drivers', icon: Users, label: 'Drivers', roles: ['Manager', 'Driver', 'Safety Officer'] },
+        { to: '/trips', icon: Map, label: 'Trips', roles: ['Manager', 'Driver'] },
+        { to: '/maintenance', icon: Wrench, label: 'Maintenance', roles: ['Manager', 'Driver', 'Financial Analyst'] },
         { to: '/expenses', icon: FileText, label: 'Expenses', roles: ['Manager', 'Financial Analyst'] },
         { to: '/analytics', icon: PieChart, label: 'Analytics', roles: ['Financial Analyst'] },
     ];
@@ -22,7 +22,7 @@ const Sidebar = () => {
                 <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-500 to-indigo-500 mr-3 flex items-center justify-center shadow-lg shadow-blue-500/30">
                     <Truck className="w-5 h-5 text-white" />
                 </div>
-                <span className="text-blue-400">Fleet</span><span className="text-white">Flow</span>
+                <span className="text-blue-400">Transit</span><span className="text-white">Ops</span>
             </div>
             <nav className="flex-1 py-4">
                 {links.map((link) => {

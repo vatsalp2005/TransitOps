@@ -74,7 +74,7 @@ const Vehicles = () => {
 
     const toggleRetire = async (vehicle) => {
         try {
-            const newStatus = vehicle.status === 'Out of Service' ? 'Available' : 'Out of Service';
+            const newStatus = vehicle.status === 'Retired' ? 'Available' : 'Retired';
             await axios.put(`${import.meta.env.VITE_API_URL}/vehicles/${vehicle._id}`, { ...vehicle, status: newStatus });
             fetchVehicles();
             toast.success(`Vehicle marked as ${newStatus}`);
@@ -103,7 +103,7 @@ const Vehicles = () => {
             case 'Available': return 'bg-green-100 text-green-800';
             case 'On Trip': return 'bg-blue-100 text-blue-800';
             case 'In Shop': return 'bg-red-100 text-red-800';
-            case 'Out of Service': return 'bg-gray-100 text-gray-800';
+            case 'Retired': return 'bg-gray-100 text-gray-800';
             default: return 'bg-gray-100 text-gray-800';
         }
     };
@@ -171,7 +171,7 @@ const Vehicles = () => {
                                         {user?.role === 'Manager' && (
                                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                                 <button onClick={() => handleEdit(vehicle)} className="text-blue-600 hover:text-blue-900 mx-2" title="Edit"><Edit2 className="w-4 h-4" /></button>
-                                                <button onClick={() => toggleRetire(vehicle)} className="text-amber-600 hover:text-amber-900 mx-2" title={vehicle.status === 'Out of Service' ? 'Reactivate' : 'Retire'}><PowerOff className="w-4 h-4" /></button>
+                                                <button onClick={() => toggleRetire(vehicle)} className="text-amber-600 hover:text-amber-900 mx-2" title={vehicle.status === 'Retired' ? 'Reactivate' : 'Retire'}><PowerOff className="w-4 h-4" /></button>
                                                 <button onClick={() => confirmDelete(vehicle._id)} className="text-red-600 hover:text-red-900 mx-2" title="Delete"><Trash2 className="w-4 h-4" /></button>
                                             </td>
                                         )}

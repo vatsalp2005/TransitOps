@@ -24,7 +24,7 @@ const Trips = () => {
     const [finalOdometer, setFinalOdometer] = useState('');
     const [ratingDriverId, setRatingDriverId] = useState(null);
     const [newSafetyScore, setNewSafetyScore] = useState(100);
-    const [formData, setFormData] = useState({ vehicleId: '', driverId: '', cargoWeight: '', origin: '', destination: '', revenue: '' });
+    const [formData, setFormData] = useState({ vehicleId: '', driverId: '', cargoWeight: '', origin: '', destination: '', plannedDistance: '', revenue: '' });
 
     const fetchData = async () => {
         try {
@@ -106,6 +106,7 @@ const Trips = () => {
             cargoWeight: trip.cargoWeight,
             origin: trip.origin,
             destination: trip.destination,
+            plannedDistance: trip.plannedDistance || 0,
             revenue: trip.revenue || 0
         });
         setIsAddOpen(true);
@@ -115,7 +116,7 @@ const Trips = () => {
         setIsAddOpen(false);
         setIsEdit(false);
         setEditId(null);
-        setFormData({ vehicleId: '', driverId: '', cargoWeight: '', origin: '', destination: '', revenue: '' });
+        setFormData({ vehicleId: '', driverId: '', cargoWeight: '', origin: '', destination: '', plannedDistance: '', revenue: '' });
     };
 
     const getStatusColor = (status) => {
@@ -169,7 +170,7 @@ const Trips = () => {
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
             <div className="flex justify-between items-center bg-white/40 p-4 rounded-xl backdrop-blur-sm border border-white/50 shadow-sm">
                 <h1 className="text-3xl font-bold text-slate-900 font-heading tracking-tight drop-shadow-sm">Trip Dispatch Management</h1>
-                {user?.role === 'Dispatcher' && (
+                {user?.role === 'Driver' && (
                     <button onClick={() => { closeModal(); setIsAddOpen(true); }} className="premium-btn px-4 py-2 rounded-lg flex items-center shadow-sm">
                         <Plus className="w-4 h-4 mr-2" /> Dispatch New Trip
                     </button>
@@ -186,7 +187,7 @@ const Trips = () => {
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Driver</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cargo Weight</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                {(user?.role === 'Dispatcher' || user?.role === 'Safety Officer') && <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>}
+                                {(user?.role === 'Driver' || user?.role === 'Safety Officer') && <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>}
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
@@ -229,7 +230,7 @@ const Trips = () => {
                                                 {trip.status}
                                             </span>
                                         </td>
-                                        {(user?.role === 'Dispatcher' || user?.role === 'Safety Officer') && (
+                                        {(user?.role === 'Driver' || user?.role === 'Safety Officer') && (
                                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                                 <div className="flex items-center justify-end space-x-3">
                                                     {user?.role === 'Safety Officer' && trip.status === 'Completed' && trip.driverId && (
@@ -242,7 +243,7 @@ const Trips = () => {
                                                             <ShieldAlert className="w-5 h-5" />
                                                         </button>
                                                     )}
-                                                    {user?.role === 'Dispatcher' && trip.status === 'Dispatched' && (
+                                                    {user?.role === 'Driver' && trip.status === 'Dispatched' && (
                                                         <button
                                                             onClick={() => confirmComplete(trip._id)}
                                                             className="text-green-600 hover:text-green-900"
@@ -251,7 +252,7 @@ const Trips = () => {
                                                             <CheckCircle2 className="w-5 h-5" />
                                                         </button>
                                                     )}
-                                                    {user?.role === 'Dispatcher' && (
+                                                    {user?.role === 'Driver' && (
                                                         <>
                                                             <button onClick={() => handleEdit(trip)} className="text-blue-600 hover:text-blue-900" title="Edit Trip"><Edit2 className="w-4 h-4" /></button>
                                                             <button onClick={() => confirmDelete(trip._id)} className="text-red-600 hover:text-red-900" title="Delete Trip"><Trash2 className="w-4 h-4" /></button>
@@ -294,19 +295,23 @@ const Trips = () => {
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Driver (On Duty)</label>
+                                <label className="block text-sm font-medium text-gray-700">Driver (Available)</label>
                                 <select required className="mt-1 w-full border border-gray-300 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500" value={formData.driverId} onChange={e => setFormData({ ...formData, driverId: e.target.value })}>
                                     <option value="">Select a driver</option>
-                                    {drivers.filter(d => d.status === 'On Duty' || d._id === formData.driverId).map(d => <option key={d._id} value={d._id}>[{d.licenseCategory || 'Van'}] {d.name}</option>)}
+                                    {drivers.filter(d => d.status === 'Available' || d._id === formData.driverId).map(d => <option key={d._id} value={d._id}>[{d.licenseCategory || 'Van'}] {d.name}</option>)}
                                 </select>
                             </div>
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-3 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700">Cargo Weight (kg)</label>
                                     <input type="number" required className="mt-1 w-full border border-gray-300 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500" value={formData.cargoWeight} onChange={e => setFormData({ ...formData, cargoWeight: e.target.value })} />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Estimated Revenue (₹)</label>
+                                    <label className="block text-sm font-medium text-gray-700">Distance (km)</label>
+                                    <input type="number" required className="mt-1 w-full border border-gray-300 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500" value={formData.plannedDistance} onChange={e => setFormData({ ...formData, plannedDistance: e.target.value })} />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Revenue (₹)</label>
                                     <input type="number" required className="mt-1 w-full border border-gray-300 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500" value={formData.revenue} onChange={e => setFormData({ ...formData, revenue: e.target.value })} />
                                 </div>
                             </div>

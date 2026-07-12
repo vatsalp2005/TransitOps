@@ -44,7 +44,7 @@ const AppRoutes = () => {
         <Route
           path="vehicles"
           element={
-            <ProtectedRoute allowedRoles={['Manager', 'Dispatcher']}>
+            <ProtectedRoute allowedRoles={['Manager', 'Driver']}>
               <Vehicles />
             </ProtectedRoute>
           }
@@ -52,7 +52,7 @@ const AppRoutes = () => {
         <Route
           path="drivers"
           element={
-            <ProtectedRoute allowedRoles={['Manager', 'Safety Officer', 'Dispatcher']}>
+            <ProtectedRoute allowedRoles={['Manager', 'Safety Officer', 'Driver']}>
               <Drivers />
             </ProtectedRoute>
           }
@@ -60,7 +60,7 @@ const AppRoutes = () => {
         <Route
           path="trips"
           element={
-            <ProtectedRoute allowedRoles={['Manager', 'Dispatcher']}>
+            <ProtectedRoute allowedRoles={['Manager', 'Driver']}>
               <Trips />
             </ProtectedRoute>
           }
@@ -68,7 +68,7 @@ const AppRoutes = () => {
         <Route
           path="maintenance"
           element={
-            <ProtectedRoute allowedRoles={['Manager', 'Dispatcher', 'Financial Analyst']}>
+            <ProtectedRoute allowedRoles={['Manager', 'Driver', 'Financial Analyst']}>
               <Maintenance />
             </ProtectedRoute>
           }

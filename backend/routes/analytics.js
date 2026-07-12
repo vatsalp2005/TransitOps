@@ -6,7 +6,7 @@ const router = express.Router();
 
 router.use(protect);
 
-router.get('/dashboard', authorize('Manager', 'Dispatcher', 'Financial Analyst'), getDashboardStats);
+router.get('/dashboard', authorize('Manager', 'Driver', 'Financial Analyst'), getDashboardStats);
 router.get('/financials', authorize('Manager', 'Financial Analyst'), getFinancialReports);
 
 export default router;

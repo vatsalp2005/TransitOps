@@ -18,7 +18,7 @@ const Drivers = () => {
     const [deleteConfirmId, setDeleteConfirmId] = useState(null);
     const [ratingDriverId, setRatingDriverId] = useState(null);
     const [newSafetyScore, setNewSafetyScore] = useState(100);
-    const [formData, setFormData] = useState({ name: '', licenseNumber: '', licenseExpiryDate: '', licenseCategory: 'Van', status: 'On Duty' });
+    const [formData, setFormData] = useState({ name: '', licenseNumber: '', licenseExpiryDate: '', licenseCategory: 'Van', contactNumber: '', status: 'Available' });
 
     const handleAddSubmit = async (e) => {
         e.preventDefault();
@@ -59,6 +59,7 @@ const Drivers = () => {
             licenseNumber: driver.licenseNumber,
             licenseExpiryDate: date,
             licenseCategory: driver.licenseCategory || 'Van',
+            contactNumber: driver.contactNumber || '',
             status: driver.status
         });
         setIsAddOpen(true);
@@ -68,7 +69,7 @@ const Drivers = () => {
         setIsAddOpen(false);
         setIsEdit(false);
         setEditId(null);
-        setFormData({ name: '', licenseNumber: '', licenseExpiryDate: '', licenseCategory: 'Van', status: 'On Duty' });
+        setFormData({ name: '', licenseNumber: '', licenseExpiryDate: '', licenseCategory: 'Van', contactNumber: '', status: 'Available' });
     };
 
     const handleUpdateScore = async () => {
@@ -100,7 +101,7 @@ const Drivers = () => {
 
     const getStatusColor = (status) => {
         switch (status) {
-            case 'On Duty': return 'bg-green-100 text-green-800';
+            case 'Available': return 'bg-green-100 text-green-800';
             case 'On Trip': return 'bg-blue-100 text-blue-800';
             case 'Off Duty': return 'bg-gray-100 text-gray-800';
             case 'Suspended': return 'bg-red-100 text-red-800';
@@ -248,9 +249,13 @@ const Drivers = () => {
                                 </select>
                             </div>
                             <div>
+                                <label className="block text-sm font-medium text-gray-700">Contact Number</label>
+                                <input className="mt-1 w-full border border-gray-300 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500" placeholder="+91 98765 43210" value={formData.contactNumber} onChange={e => setFormData({ ...formData, contactNumber: e.target.value })} />
+                            </div>
+                            <div>
                                 <label className="block text-sm font-medium text-gray-700">Initial Status</label>
                                 <select className="mt-1 w-full border border-gray-300 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500" value={formData.status} onChange={e => setFormData({ ...formData, status: e.target.value })}>
-                                    <option value="On Duty">On Duty</option>
+                                    <option value="Available">Available</option>
                                     <option value="Off Duty">Off Duty</option>
                                 </select>
                             </div>

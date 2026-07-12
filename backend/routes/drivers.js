@@ -7,7 +7,7 @@ const router = express.Router();
 router.use(protect);
 
 router.route('/')
-    .get(authorize('Manager', 'Safety Officer', 'Dispatcher'), getDrivers)
+    .get(authorize('Manager', 'Safety Officer', 'Driver'), getDrivers)
     .post(authorize('Manager', 'Safety Officer'), createDriver);
 
 router.route('/:id')

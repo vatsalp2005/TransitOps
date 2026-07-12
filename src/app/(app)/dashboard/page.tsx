@@ -22,6 +22,7 @@ import { useApi } from "@/lib/client/api";
 import { TRIP_STATUS_META, VEHICLE_TYPE_LABEL, enumOptions } from "@/lib/display";
 import { STATE_NAME } from "@/lib/india-map";
 import { IndiaFleetMap, MapLegend } from "@/components/IndiaFleetMap";
+import { LicenceWatchlist } from "@/components/LicenceWatchlist";
 import { formatNumber } from "@/lib/utils";
 import type { DashboardData } from "@/lib/types";
 import { timeAgo } from "@/lib/format";
@@ -155,8 +156,9 @@ export default function DashboardPage() {
             </Card>
           </div>
 
-          {/* Fleet status + top states + activity */}
-          <div className="grid gap-4 lg:grid-cols-3">
+          {/* Compliance + fleet status + activity */}
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <LicenceWatchlist drivers={data?.expiringLicenses ?? []} />
             <Card>
               <CardHeader title="Vehicle Status" subtitle={`${vsTotal} vehicles`} icon={<Gauge className="size-3.5" />} />
               <div className="space-y-3.5 p-4">

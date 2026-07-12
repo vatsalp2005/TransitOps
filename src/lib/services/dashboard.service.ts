@@ -7,13 +7,15 @@ import {
   VehicleType,
 } from "@prisma/client";
 import { recentActivity } from "./audit";
+import { expiringLicenses } from "./driver.service";
 
 export type DashboardFilters = { type?: VehicleType };
 
 export async function getDashboard(filters: DashboardFilters = {}) {
   const vehicleWhere: Prisma.VehicleWhereInput = filters.type ? { type: filters.type } : {};
 
-  const [vehicleGroups, regionGroups, tripGroups, driverGroups, activeTrips, activity] = await Promise.all([
+  const [vehicleGroups, regionGroups, tripGroups, driverGroups, activeTrips, activity, expiring] =
+    await Promise.all([
     prisma.vehicle.groupBy({ by: ["status"], where: vehicleWhere, _count: { _all: true } }),
     // Fleet count per Indian state — powers the map.
     prisma.vehicle.groupBy({
@@ -34,6 +36,8 @@ export async function getDashboard(filters: DashboardFilters = {}) {
       },
     }),
     recentActivity(8),
+    // Compliance: licences expired or expiring within 30 days.
+    expiringLicenses(30),
   ]);
 
   const vCount = (s: VehicleStatus) =>
@@ -76,6 +80,14 @@ export async function getDashboard(filters: DashboardFilters = {}) {
     },
     activeTrips,
     activity,
+    /** Compliance watchlist: licences expired or expiring within 30 days. */
+    expiringLicenses: expiring.map((d) => ({
+      id: d.id,
+      name: d.name,
+      licenseNo: d.licenseNo,
+      licenseExpiry: d.licenseExpiry,
+      status: d.status,
+    })),
     updatedAt: new Date(),
   };
 }

@@ -111,6 +111,14 @@ export default function DriversPage() {
                     </Td>
                     <Td>
                       <StatusBadge tone={DRIVER_STATUS_META[d.status].tone} label={DRIVER_STATUS_META[d.status].label} />
+                      {d.status === "SUSPENDED" && d.suspensionReason && (
+                        <p
+                          className="mt-1 max-w-[220px] truncate text-[11px] text-danger"
+                          title={d.suspensionReason}
+                        >
+                          {d.suspensionReason}
+                        </p>
+                      )}
                     </Td>
                     {canEdit && (
                       <Td className="text-right">

@@ -124,17 +124,26 @@ async function main() {
     john: await prisma.driver.create({
       data: { name: "John Mathew", licenseNo: "DL-MH-2018-0442", licenseCategory: "HMV", licenseExpiry: daysFromNow(210), contact: "+91 98200 44556", safetyScore: 88, status: "ON_TRIP" },
     }),
+    // Licence expires in 12 days -> lands on the compliance watchlist.
     priya: await prisma.driver.create({
-      data: { name: "Priyanka Shah", licenseNo: "DL-MH-2020-0873", licenseCategory: "HMV", licenseExpiry: daysFromNow(35), contact: "+91 98200 77889", safetyScore: 95, status: "AVAILABLE" },
+      data: { name: "Priyanka Shah", licenseNo: "DL-MH-2020-0873", licenseCategory: "HMV", licenseExpiry: daysFromNow(12), contact: "+91 98200 77889", safetyScore: 95, status: "AVAILABLE" },
     }),
+    // Licence already expired -> blocked from dispatch, and on the watchlist.
     sameer: await prisma.driver.create({
       data: { name: "Sameer Ali", licenseNo: "DL-MH-2017-0210", licenseCategory: "TRANS", licenseExpiry: daysFromNow(-20), contact: "+91 98200 33221", safetyScore: 71, status: "AVAILABLE" },
     }),
     rita: await prisma.driver.create({
       data: { name: "Rita Fernandes", licenseNo: "DL-MH-2021-0555", licenseCategory: "LMV", licenseExpiry: daysFromNow(680), contact: "+91 98200 66554", safetyScore: 84, status: "OFF_DUTY" },
     }),
+    // Suspended with a recorded reason (compliance workflow).
     deepak: await prisma.driver.create({
-      data: { name: "Deepak Kumar", licenseNo: "DL-MH-2016-0099", licenseCategory: "HMV", licenseExpiry: daysFromNow(150), contact: "+91 98200 99001", safetyScore: 48, status: "SUSPENDED" },
+      data: {
+        name: "Deepak Kumar", licenseNo: "DL-MH-2016-0099", licenseCategory: "HMV",
+        licenseExpiry: daysFromNow(150), contact: "+91 98200 99001", safetyScore: 48,
+        status: "SUSPENDED",
+        suspensionReason: "Safety score below threshold after repeated overspeeding violations",
+        suspendedAt: monthsAgo(1),
+      },
     }),
   };
 

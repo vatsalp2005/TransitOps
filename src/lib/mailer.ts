@@ -41,6 +41,95 @@ export async function sendMail(opts: { to: string; subject: string; html: string
   return { delivered: true as const };
 }
 
+const shell = (title: string, body: string) => `
+  <div style="font-family:ui-sans-serif,system-ui,sans-serif;background:#0a0b0d;padding:32px;color:#e8ebf0">
+    <div style="max-width:560px;margin:0 auto;background:#101216;border:1px solid #22262e;border-radius:4px;padding:28px">
+      <p style="margin:0 0 4px;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#ff5a1f">TransitOps</p>
+      <h1 style="margin:0 0 16px;font-size:19px;color:#fff">${title}</h1>
+      ${body}
+    </div>
+  </div>`;
+
+const fmt = (d: Date) =>
+  new Date(d).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+
+/** Reminder sent directly to a driver whose licence is expiring (or has expired). */
+export function licenceReminderEmail(
+  name: string,
+  licenceNo: string,
+  expiry: Date,
+  daysLeft: number,
+) {
+  const expired = daysLeft < 0;
+  const subject = expired
+    ? `Action required: your driving licence has expired`
+    : `Your driving licence expires in ${daysLeft} day${daysLeft === 1 ? "" : "s"}`;
+
+  const headline = expired
+    ? `Your licence <strong>${licenceNo}</strong> expired on <strong>${fmt(expiry)}</strong>.`
+    : `Your licence <strong>${licenceNo}</strong> expires on <strong>${fmt(expiry)}</strong> — that is <strong>${daysLeft} day${daysLeft === 1 ? "" : "s"}</strong> away.`;
+
+  const text = `Hi ${name},
+
+${expired ? `Your driving licence ${licenceNo} expired on ${fmt(expiry)}.` : `Your driving licence ${licenceNo} expires on ${fmt(expiry)} (${daysLeft} days away).`}
+
+Until it is renewed you cannot be assigned to trips. Please renew it and send the updated details to your safety officer.
+
+— TransitOps`;
+
+  const html = shell(
+    expired ? "Your licence has expired" : "Your licence is expiring",
+    `<p style="margin:0 0 14px;line-height:1.6;color:#8b93a1">Hi ${name}, ${headline}</p>
+     <p style="margin:0;padding:12px;border-left:2px solid ${expired ? "#f43f5e" : "#fbbf24"};background:#15181d;line-height:1.6;color:#8b93a1">
+       Until it is renewed you <strong style="color:#fff">cannot be assigned to trips</strong>.
+       Please renew it and send the updated details to your safety officer.
+     </p>`,
+  );
+
+  return { subject, text, html };
+}
+
+/** Digest to Safety Officers + Fleet Managers listing every expiring licence. */
+export function complianceDigestEmail(
+  rows: { name: string; licenseNo: string; expiry: Date; daysLeft: number }[],
+  windowDays: number,
+) {
+  const subject = `${rows.length} driving licence${rows.length === 1 ? "" : "s"} expiring within ${windowDays} days`;
+
+  const text = [
+    `Licences expiring within ${windowDays} days:`,
+    "",
+    ...rows.map(
+      (r) =>
+        `- ${r.name} (${r.licenseNo}) — ${r.daysLeft < 0 ? `EXPIRED ${fmt(r.expiry)}` : `${r.daysLeft} days left, ${fmt(r.expiry)}`}`,
+    ),
+    "",
+    "Drivers with expired licences are automatically blocked from dispatch.",
+  ].join("\n");
+
+  const list = rows
+    .map((r) => {
+      const tone = r.daysLeft < 0 ? "#f43f5e" : r.daysLeft <= 7 ? "#fbbf24" : "#8b93a1";
+      const label = r.daysLeft < 0 ? `Expired ${fmt(r.expiry)}` : `${r.daysLeft} days · ${fmt(r.expiry)}`;
+      return `<tr>
+        <td style="padding:8px 0;border-bottom:1px solid #22262e;color:#fff">${r.name}
+          <span style="color:#5d6472;font-size:12px"> ${r.licenseNo}</span></td>
+        <td style="padding:8px 0;border-bottom:1px solid #22262e;text-align:right;color:${tone};font-size:13px">${label}</td>
+      </tr>`;
+    })
+    .join("");
+
+  const html = shell(
+    `${rows.length} licence${rows.length === 1 ? "" : "s"} expiring`,
+    `<table style="width:100%;border-collapse:collapse">${list}</table>
+     <p style="margin:18px 0 0;font-size:12px;color:#5d6472;line-height:1.6">
+       Drivers with expired licences are automatically blocked from dispatch.
+     </p>`,
+  );
+
+  return { subject, text, html };
+}
+
 /** Branded password-reset email. */
 export function resetEmail(name: string, link: string) {
   const text = `Hi ${name},

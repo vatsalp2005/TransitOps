@@ -36,9 +36,21 @@ export type Driver = {
   licenseCategory: LicenseCategory;
   licenseExpiry: string;
   contact: string;
+  email: string | null;
   safetyScore: number;
   status: DriverStatus;
+  suspensionReason: string | null;
+  suspendedAt: string | null;
   createdAt: string;
+};
+
+/** A driver on the licence-compliance watchlist. */
+export type ExpiringLicence = {
+  id: string;
+  name: string;
+  licenseNo: string;
+  licenseExpiry: string;
+  status: DriverStatus;
 };
 
 export type Trip = {
@@ -124,6 +136,7 @@ export type DashboardData = {
     driver: { name: string };
   })[];
   activity: Activity[];
+  expiringLicenses: ExpiringLicence[];
   updatedAt: string;
 };
 

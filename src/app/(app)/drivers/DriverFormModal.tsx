@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import type { LicenseCategory, DriverStatus } from "@prisma/client";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
-import { Field, Input, Select } from "@/components/ui/Field";
+import { Field, Input, Select, Textarea } from "@/components/ui/Field";
 import { useToast } from "@/components/ui/Toast";
 import { apiFetch, ApiError } from "@/lib/client/api";
 import { DriverLicense3D } from "@/components/DriverLicense3D";
@@ -16,8 +16,10 @@ type FormState = {
   licenseCategory: LicenseCategory;
   licenseExpiry: string;
   contact: string;
+  email: string;
   safetyScore: string;
   status: DriverStatus;
+  suspensionReason: string;
 };
 
 const empty: FormState = {
@@ -26,8 +28,10 @@ const empty: FormState = {
   licenseCategory: "LMV",
   licenseExpiry: "",
   contact: "",
+  email: "",
   safetyScore: "100",
   status: "AVAILABLE",
+  suspensionReason: "",
 };
 
 export function DriverFormModal({
@@ -57,8 +61,10 @@ export function DriverFormModal({
               licenseCategory: driver.licenseCategory,
               licenseExpiry: driver.licenseExpiry.slice(0, 10),
               contact: driver.contact,
+              email: driver.email ?? "",
               safetyScore: String(driver.safetyScore),
               status: driver.status,
+              suspensionReason: driver.suspensionReason ?? "",
             }
           : empty,
       );
@@ -78,8 +84,11 @@ export function DriverFormModal({
         licenseCategory: form.licenseCategory,
         licenseExpiry: form.licenseExpiry,
         contact: form.contact,
+        email: form.email || undefined,
         safetyScore: Number(form.safetyScore),
-        ...(driver ? { status: form.status } : {}),
+        ...(driver
+          ? { status: form.status, suspensionReason: form.suspensionReason || undefined }
+          : {}),
       };
       if (driver) {
         await apiFetch(`/api/drivers/${driver.id}`, { method: "PATCH", body: payload });
@@ -144,12 +153,41 @@ export function DriverFormModal({
               className="w-full accent-[var(--color-accent)]"
             />
           </Field>
+          <Field
+            label="Email (optional)"
+            error={errors.email}
+            hint="Used to send licence-expiry reminders directly to the driver."
+          >
+            <Input
+              type="email"
+              value={form.email}
+              onChange={(e) => set("email", e.target.value)}
+              placeholder="driver@example.com"
+            />
+          </Field>
+
           {driver && (
             <Field label="Status" error={errors.status}>
               <Select
                 value={form.status}
                 onChange={(e) => set("status", e.target.value)}
                 options={Object.entries(DRIVER_STATUS_META).map(([v, m]) => ({ value: v, label: m.label }))}
+              />
+            </Field>
+          )}
+
+          {/* Suspension is a compliance event — a reason is required and recorded. */}
+          {driver && form.status === "SUSPENDED" && (
+            <Field
+              label="Reason for suspension"
+              error={errors.suspensionReason}
+              hint="Recorded in the audit trail. Suspended drivers cannot be dispatched."
+            >
+              <Textarea
+                value={form.suspensionReason}
+                onChange={(e) => set("suspensionReason", e.target.value)}
+                placeholder="e.g. Safety score below threshold after repeated overspeeding"
+                required
               />
             </Field>
           )}

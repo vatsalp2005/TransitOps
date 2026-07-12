@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { Prisma, DriverStatus } from "@prisma/client";
-import { notFound } from "@/lib/api/errors";
+import { badRequest, notFound } from "@/lib/api/errors";
 import { recordAudit } from "./audit";
 import type { DriverCreateInput, DriverUpdateInput } from "@/lib/validation/driver";
 
@@ -71,14 +71,72 @@ export async function createDriver(input: DriverCreateInput, actorId?: string | 
   return driver;
 }
 
+/** Default reminder window: licences expiring within this many days. */
+export const EXPIRY_WINDOW_DAYS = 30;
+
+/**
+ * Drivers whose licence has expired or expires within `days`.
+ * Ordered soonest-first so the most urgent compliance risk surfaces at the top.
+ */
+export function expiringLicenses(days = EXPIRY_WINDOW_DAYS) {
+  const cutoff = new Date();
+  cutoff.setHours(0, 0, 0, 0);
+  cutoff.setDate(cutoff.getDate() + days);
+
+  return prisma.driver.findMany({
+    where: {
+      licenseExpiry: { lte: cutoff },
+      status: { not: DriverStatus.SUSPENDED },
+    },
+    orderBy: { licenseExpiry: "asc" },
+  });
+}
+
+/**
+ * Update a driver.
+ *
+ * Suspension is a compliance event, not just a status flip: a reason is required,
+ * the moment of suspension is recorded, and it is written to the audit trail.
+ * Lifting a suspension clears both fields.
+ */
 export async function updateDriver(id: string, input: DriverUpdateInput, actorId?: string | null) {
-  await getDriver(id);
-  const driver = await prisma.driver.update({ where: { id }, data: input });
+  const current = await getDriver(id);
+
+  const data: Prisma.DriverUpdateInput = { ...input };
+  let summary = `Updated driver ${current.name}`;
+
+  const becomingSuspended =
+    input.status === DriverStatus.SUSPENDED && current.status !== DriverStatus.SUSPENDED;
+  const liftingSuspension =
+    input.status != null &&
+    input.status !== DriverStatus.SUSPENDED &&
+    current.status === DriverStatus.SUSPENDED;
+
+  if (becomingSuspended) {
+    const reason = input.suspensionReason?.trim();
+    if (!reason) {
+      throw badRequest("A reason is required to suspend a driver.", [
+        { path: "suspensionReason", message: "Give a reason for the suspension." },
+      ]);
+    }
+    data.suspensionReason = reason;
+    data.suspendedAt = new Date();
+    summary = `Suspended ${current.name}: ${reason}`;
+  }
+
+  if (liftingSuspension) {
+    data.suspensionReason = null;
+    data.suspendedAt = null;
+    summary = `Lifted suspension on ${current.name}`;
+  }
+
+  const driver = await prisma.driver.update({ where: { id }, data });
+
   await recordAudit(prisma, {
     entity: "Driver",
     entityId: id,
     action: "UPDATE",
-    summary: `Updated driver ${driver.name}`,
+    summary,
     actorId,
   });
   return driver;

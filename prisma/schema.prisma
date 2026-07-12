@@ -240,11 +240,21 @@ model Driver {
   licenseCategory LicenseCategory @map("license_category")
   licenseExpiry   DateTime        @map("license_expiry") @db.Date
   contact         String
+  /// Optional — used to send licence-expiry reminders directly to the driver.
+  email           String?
   safetyScore     Int             @default(100) @map("safety_score") // 0-100
   status          DriverStatus    @default(AVAILABLE)
-  trips           Trip[]
-  createdAt       DateTime        @default(now()) @map("created_at")
-  updatedAt       DateTime        @updatedAt @map("updated_at")
+
+  /// Suspension audit: why a driver was suspended, and when.
+  suspensionReason String?   @map("suspension_reason")
+  suspendedAt      DateTime? @map("suspended_at")
+
+  /// Last time an expiry reminder was emailed, so we don't spam daily.
+  lastReminderAt DateTime? @map("last_reminder_at")
+
+  trips     Trip[]
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@index([status])
   @@index([licenseExpiry])

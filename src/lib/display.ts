@@ -47,6 +47,23 @@ export const DRIVER_STATUS_META: Record<DriverStatus, { label: string; tone: Ton
   SUSPENDED: { label: "Suspended", tone: "suspended" },
 };
 
+/**
+ * Effective (operational) status for display. A driver whose duty status is
+ * AVAILABLE but whose licence has expired cannot actually be dispatched — the
+ * server already excludes them from the pool — so the badge must reflect that
+ * rather than a misleading "Available". The stored status is left untouched, so
+ * renewing the licence restores availability with no data change.
+ */
+export function effectiveDriverStatus(
+  status: DriverStatus,
+  licenceExpired: boolean,
+): { label: string; tone: Tone } {
+  if (licenceExpired && status === "AVAILABLE") {
+    return { label: "Unavailable", tone: "danger" };
+  }
+  return DRIVER_STATUS_META[status];
+}
+
 export const TRIP_STATUS_META: Record<TripStatus, { label: string; tone: Tone }> = {
   DRAFT: { label: "Draft", tone: "neutral" },
   DISPATCHED: { label: "Dispatched", tone: "ontrip" },

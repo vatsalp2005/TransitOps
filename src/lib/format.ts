@@ -21,10 +21,20 @@ export function formatDate(date: string | Date | null | undefined): string {
   return d.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
 }
 
-/** Days until a date; negative when past. */
+/**
+ * Whole calendar days until a date; negative when past, 0 when it is today.
+ *
+ * licenceExpiry is a date-only value (stored `@db.Date`, serialized as UTC
+ * midnight). We compare it against today as calendar dates — both reduced to a
+ * UTC-midnight timestamp — so the answer is an exact number of days regardless of
+ * the viewer's timezone. The previous version mixed a UTC-midnight expiry with a
+ * *local* midnight "today", which rounded a 1-day gap up to 2 in positive-offset
+ * zones like IST.
+ */
 export function daysUntilDate(date: string | Date): number {
   const d = typeof date === "string" ? new Date(date) : date;
-  const start = new Date();
-  start.setHours(0, 0, 0, 0);
-  return Math.ceil((d.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+  const expiry = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+  const now = new Date();
+  const today = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+  return Math.round((expiry - today) / 86_400_000);
 }

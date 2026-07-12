@@ -10,7 +10,7 @@ import { Table, THead, TBody, Th, Td, TRow } from "@/components/ui/Table";
 import { TableSkeleton, EmptyState, ErrorState } from "@/components/ui/States";
 import { useApi } from "@/lib/client/api";
 import { usePermissions } from "@/components/layout/PermissionsProvider";
-import { DRIVER_STATUS_META } from "@/lib/display";
+import { DRIVER_STATUS_META, effectiveDriverStatus } from "@/lib/display";
 import { formatDate, daysUntilDate } from "@/lib/format";
 import type { Driver } from "@/lib/types";
 import { DriverFormModal } from "./DriverFormModal";
@@ -110,7 +110,7 @@ export default function DriversPage() {
                       <SafetyPill score={d.safetyScore} />
                     </Td>
                     <Td>
-                      <StatusBadge tone={DRIVER_STATUS_META[d.status].tone} label={DRIVER_STATUS_META[d.status].label} />
+                      <StatusBadge {...effectiveDriverStatus(d.status, expired)} />
                       {d.status === "SUSPENDED" && d.suspensionReason && (
                         <p
                           className="mt-1 max-w-[220px] truncate text-[11px] text-danger"

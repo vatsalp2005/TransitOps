@@ -106,15 +106,15 @@ export const getFinancialReports = async (req, res) => {
         const totalOpsCost = totalFuelCost + totalMaintenanceCost;
         let vehicleRoi = 0;
         if (totalAcquisitionCost > 0) {
-            vehicleRoi = (((totalRevenue - totalOpsCost) / totalAcquisitionCost) * 100).toFixed(2);
+            vehicleRoi = parseFloat((((totalRevenue - totalOpsCost) / totalAcquisitionCost) * 100).toFixed(2));
         }
 
         res.json({
             totalFuelCost,
             totalMaintenanceCost,
             totalOperationalCost: totalOpsCost,
-            costPerKm,
-            fuelEfficiency,
+            costPerKm: parseFloat(costPerKm),
+            fuelEfficiency: parseFloat(fuelEfficiency),
             avgRoi: vehicleRoi,
             roiData
         });

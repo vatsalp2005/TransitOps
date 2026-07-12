@@ -53,13 +53,38 @@ export const createExpenseLog = async (req, res) => {
     try {
         const { tripId, vehicleId, liters, cost, date } = req.body;
 
+        if (!vehicleId) {
+            return res.status(400).json({ message: 'Vehicle ID is required' });
+        }
+
+        const numLiters = Number(liters);
+        const numCost = Number(cost);
+
+        if (isNaN(numLiters) || numLiters <= 0) {
+            return res.status(400).json({ message: 'Liters must be a valid positive number' });
+        }
+
+        if (isNaN(numCost) || numCost <= 0) {
+            return res.status(400).json({ message: 'Cost must be a valid positive number' });
+        }
+
+        const vehicle = await prisma.vehicle.findUnique({ where: { id: vehicleId } });
+        if (!vehicle) {
+            return res.status(404).json({ message: 'Vehicle not found' });
+        }
+
+        const logDate = date ? new Date(date) : new Date();
+        if (isNaN(logDate.getTime()) || logDate > new Date()) {
+            return res.status(400).json({ message: 'Invalid or future date provided' });
+        }
+
         const log = await prisma.expenseLog.create({
             data: {
                 tripId: tripId || null,
                 vehicleId,
-                liters: Number(liters),
-                cost: Number(cost),
-                date: date ? new Date(date) : new Date()
+                liters: numLiters,
+                cost: numCost,
+                date: logDate
             },
             include: { vehicle: true, trip: true }
         });
@@ -75,9 +100,29 @@ export const updateExpenseLog = async (req, res) => {
         const { id } = req.params;
         const data = { ...req.body };
 
-        if (data.liters) data.liters = Number(data.liters);
-        if (data.cost) data.cost = Number(data.cost);
-        if (data.date) data.date = new Date(data.date);
+        if (data.liters !== undefined) {
+            const numLiters = Number(data.liters);
+            if (isNaN(numLiters) || numLiters <= 0) {
+                return res.status(400).json({ message: 'Liters must be a valid positive number' });
+            }
+            data.liters = numLiters;
+        }
+
+        if (data.cost !== undefined) {
+            const numCost = Number(data.cost);
+            if (isNaN(numCost) || numCost <= 0) {
+                return res.status(400).json({ message: 'Cost must be a valid positive number' });
+            }
+            data.cost = numCost;
+        }
+
+        if (data.date !== undefined) {
+            const logDate = new Date(data.date);
+            if (isNaN(logDate.getTime()) || logDate > new Date()) {
+                return res.status(400).json({ message: 'Invalid or future date provided' });
+            }
+            data.date = logDate;
+        }
         if (data.tripId === '') data.tripId = null;
 
         const log = await prisma.expenseLog.update({

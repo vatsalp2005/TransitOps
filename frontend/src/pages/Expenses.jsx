@@ -41,6 +41,14 @@ const Expenses = () => {
 
     const handleAddSubmit = async (e) => {
         e.preventDefault();
+
+        if (Number(formData.liters) <= 0) {
+            return toast.error("Liters must be greater than 0");
+        }
+        if (Number(formData.cost) <= 0) {
+            return toast.error("Cost must be greater than 0");
+        }
+
         try {
             const dataToSubmit = { ...formData };
             if (!dataToSubmit.tripId) delete dataToSubmit.tripId;
@@ -177,11 +185,11 @@ const Expenses = () => {
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700">Liters</label>
-                                <input type="number" required className="mt-1 w-full border border-gray-300 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500" value={formData.liters} onChange={e => setFormData({ ...formData, liters: e.target.value })} />
+                                <input type="number" min="0" step="0.01" required className="mt-1 w-full border border-gray-300 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500" value={formData.liters} onChange={e => setFormData({ ...formData, liters: e.target.value })} />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700">Cost (₹)</label>
-                                <input type="number" required className="mt-1 w-full border border-gray-300 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500" value={formData.cost} onChange={e => setFormData({ ...formData, cost: e.target.value })} />
+                                <input type="number" min="0" step="0.01" required className="mt-1 w-full border border-gray-300 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500" value={formData.cost} onChange={e => setFormData({ ...formData, cost: e.target.value })} />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700">Date</label>

@@ -1,6 +1,6 @@
 # TransitOps
 
-### **Live application: https://transit-ops.vercel.app**
+### **Live application: https://odoo-seven-phi.vercel.app**
 
 Transport operations platform for managing the full lifecycle of a vehicle fleet — registry, drivers, dispatch, maintenance, fuel and expenses, and analytics — with business rules enforced server-side.
 

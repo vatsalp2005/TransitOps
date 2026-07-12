@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
-import type { VehicleStatus } from "@prisma/client";
+import type { VehicleStatus, VehicleType } from "@prisma/client";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { Field, Input, Select } from "@/components/ui/Field";
@@ -126,7 +126,7 @@ export function VehicleFormModal({
         {/* Live 3D preview */}
         <div className="flex flex-col">
           <div className="relative h-56 rounded-xl border border-line bg-bg/60 md:h-full">
-            <VehicleModel status={form.status} />
+            <VehicleModel status={form.status} type={form.type as VehicleType} />
             <div className="absolute left-3 top-3">
               <StatusBadge
                 tone={VEHICLE_STATUS_META[form.status].tone}
